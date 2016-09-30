@@ -1,6 +1,6 @@
 # Checksum
 
-Play-by-play: http://showterm.io/d00ae10bb8c6a0175ead5
+**Play-by-play:** [CLI Demo](http://showterm.io/d00ae10bb8c6a0175ead5)
 
 ## Step 1
 In the `checksum` directory, you’ll see 3 files containing the following quotes:
@@ -69,12 +69,13 @@ Whereas previously its hash value was:
 ```
 b17b22e110b4bc6d4fdb3cdab8c36dfcfb109ef698c891a704f49dfe718523c9  quote1.txt
 ```
-What this means is that you don’t need to know *_what_* has changed to be able to tell that *_something_* has changed. In the same way, web applications can tell that you’ve entered an incorrect password even though they don’t know your password!
+What this means is that you don’t need to know **_what_** has changed to be able to tell that **_something_** has changed. In the same way, web applications can tell that you’ve entered an incorrect password even though they don’t know your password!
 
 ## Take Away: Hash Pointer
 One idea would be to rename `quote1.txt` to its hash value. This serves two purposes:
-1. Identification
-2. Integrity verification
+
+1.  Identification
+2.  Integrity verification
 
 Thus `quote1.txt` would become:
 ```
