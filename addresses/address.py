@@ -7,7 +7,7 @@ import random
 # Enter a private key
 # You can generate one at: https://bitcore.io/playground/#/address
 # Ex: e1e78ca3ebbce24977ddd8161905e7ee6821c0a100a6c1a58ac2e0cf79f98635
-private_key = 'YOUR PRIVATE KEY'
+private_key = 'e1e78ca3ebbce24977ddd8161905e7ee6821c0a100a6c1a58ac2e0cf79f98635'
 pk = private_key.decode('hex')
 
 # Generate a 512-bit public key from the private key (pk) using ECDSA
