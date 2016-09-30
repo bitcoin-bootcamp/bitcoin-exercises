@@ -1,0 +1,30 @@
+# Hashcash
+
+**Play-by-play:** [CLI Demo -- Update](http://showterm.io/d00ae10bb8c6a0175ead5)
+
+## Minting a stamp
+To “mint” a stamp you can run the following command:
+```
+$ hashcash -m -r justin@nospam.com
+hashcash stamp: 1:20:160930:justin@nospam.com::hCiehBcv/W90Bpce:000000000000000000000000000000000000000000004YEQ
+```
+The important part here is the random string `hCiehBcv/W90Bpce`.
+
+```
+$ echo -n "1:20:160930:justin@nospam.com::hCiehBcv/W90Bpce:000000000000000000000000000000000000000000004YEQ" | shasum -t
+000000efe42fb212d4268aa44af912a26ce1c47e
+```
+
+We’ll create a stamp using the default 20 bits which equates to five leading zeroes
+```
+$ hashcash -m -r justin@nospam.com > stamp
+$ echo -n $( cat stamp ) | shasum
+**00000**a0b04416b6367f3d1954b7569540d0ab04c
+```
+
+To get 7 zeroes, we’ll need 28 bits (7 * 4)
+```
+$ hashcash -b 32 -m -r justin@nospam.com > foreverstamp
+$ echo -n $( cat foreverstamp ) | shasum
+0000000d8e4c26fb1e63c992885db80bf11e9803
+```
