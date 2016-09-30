@@ -10,7 +10,7 @@ hashcash stamp: 1:20:160930:justin@nospam.com::hCiehBcv/W90Bpce:0000000000000000
 ```
 The important part here is the random string `hCiehBcv/W90Bpce`
 
-There was clearly "proof of work" in generating the stamp since there is partial collision that could have only been produced via brute force. We can verify the partial collision by hashing the stamp using SHA-1:
+There was clearly "proof of work" in generating the stamp since there is partial collision that could have only been produced via brute force. We can verify the partial collision by hashing the stamp using SHA-1 to observe the leading zeroes:
 ```
 $ echo -n "1:20:160930:justin@nospam.com::hCiehBcv/W90Bpce:000000000000000000000000000000000000000000004YEQ" | shasum -t
 000000efe42fb212d4268aa44af912a26ce1c47e
@@ -25,7 +25,7 @@ $ echo -n $( cat stamp ) | shasum
 
 To get 7 zeroes, we’ll need 28 bits (7 * 4)
 ```
-$ hashcash -b 32 -m -r justin@nospam.com > foreverstamp
+$ hashcash -b 28 -m -r justin@nospam.com > foreverstamp
 $ echo -n $( cat foreverstamp ) | shasum
 0000000d8e4c26fb1e63c992885db80bf11e9803
 ```
