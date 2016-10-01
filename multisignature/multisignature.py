@@ -1,5 +1,5 @@
 #!/usr/bin/python
-""" Generate a 2 of 3 multisignature address
+""" A multisignature library designed for demonstration of multisignature concepts
 
 """
 
@@ -15,11 +15,17 @@ class MultiSignature(object):
         private_key_two = self.generate_private_key()
         private_key_three = self.generate_private_key()
 
+        print "Generate private keys:"
+        print "One - ", private_key_one
+        print "Two - ", private_key_two
+        print "Three - ", private_key_three
+        
+
         public_key_one = self.get_public_key(private_key_one)
         public_key_two = self.get_public_key(private_key_two)
         public_key_three = self.get_public_key(private_key_three)
 
-        print "Generated private keys:"
+        print "Generated public keys:"
         print "One - ", self.get_public_address(public_key_one)
         print "Two - ", self.get_public_address(public_key_two)
         print "Three - ", self.get_public_address(public_key_three)
