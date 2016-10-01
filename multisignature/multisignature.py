@@ -56,9 +56,8 @@ class MultiSignature(object):
         return p2sh_scriptaddr(redeem_script)
 
 @click.group(help='')
-@click.pass_context
-def cli(ctx):
-    ctx.obj = MultiSignature()
+def cli():
+    pass
 
 @click.command('generate_address')
 def generate_address():
@@ -68,3 +67,4 @@ cli.add_command(generate_address)
 
 if __name__ == '__main__':
     cli()
+
