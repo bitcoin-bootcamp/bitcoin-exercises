@@ -42,7 +42,7 @@ class MultiSignature(object):
         print "\t", multisignature_address
 
 
-    def get_unspent(self, address):
+    def get_unspents(self, address):
 
         table = []
 
@@ -63,12 +63,27 @@ class MultiSignature(object):
         print tabulate(table, headers=["Date", "Transaction ID", "Address", "Value", "Vout"])
 
 
+    def create_raw_transaction(self, txid, vout, address, amount):
+        raw_transaction =  self._create_raw_transaction(txid, vout, address, amount)
+
+        print colored("Raw transaction:", "yellow")
+        print raw_transaction
+
+
+    def sign_transaction(self, private_key, transaction):
+        index = 0
+        signed_transaction = self._sign_transaction(transaction, index, private_key)
+        print colored("Signed transaction:", "yellow")
+        print signed_transaction
+
+
+    # Address creation methods
+
     @staticmethod
     def generate_private_key():
         return sha256(str(random.randrange(2**256)))
 
 
-    # Function aliases - modified for readability
     @staticmethod
     def get_public_key(private_key):
         return privtopub(private_key)
@@ -89,6 +104,20 @@ class MultiSignature(object):
         return p2sh_scriptaddr(redeem_script)
 
 
+    # Transaction creation and signing methods
+
+    @staticmethod
+    def _create_raw_transaction(transaction_id, vout, address, amount):
+        inputs = [transaction_id + ':' + vout]
+        outputs = [address + ':' + amount]
+        return mktx(inputs, outputs)
+
+
+    @staticmethod
+    def _sign_transaction(transaction, index, private_key):
+        return sign(transaction, index, private_key)
+
+
 @click.group(help='')
 def cli():
     pass
@@ -101,12 +130,30 @@ def generate_address():
 
 @click.command('get_unspent')
 @click.option('--address', help='Bitcoin address', required=True)
-def get_unspent(address):
-    MultiSignature().get_unspent(address)
+def get_unspents(address):
+    MultiSignature().get_unspents(address)
+
+
+@click.command('create_raw_transaction')
+@click.option('--txid', help='Transaction Id', required=True)
+@click.option('--vout', help='The vout or index of the unspent', required=True)
+@click.option('--address', help='The recipients address', required=True)
+@click.option('--amount', help='The amount to send', required=True)
+def create_raw_transaction(txid, vout, address, amount):
+    MultiSignature().create_raw_transaction(txid, vout, address, amount)
+
+
+@click.command('sign_transaction')
+@click.option('--private_key', help='Private key', required=True)
+@click.option('--transaction', help='Transaction', required=True)
+def sign_transaction(private_key, transaction):
+    MultiSignature().sign_transaction(private_key, transaction)
 
 
 cli.add_command(generate_address)
-cli.add_command(get_unspent)
+cli.add_command(get_unspents)
+cli.add_command(create_raw_transaction)
+cli.add_command(sign_transaction)
 
 
 if __name__ == '__main__':
