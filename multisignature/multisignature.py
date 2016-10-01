@@ -3,10 +3,11 @@
 
 """
 
-import click
+import click, requests
 
 from bitcoin import *
 from termcolor import colored
+from tabulate import tabulate
 
 class MultiSignature(object):
 
@@ -40,36 +41,73 @@ class MultiSignature(object):
         print colored("Multisignature address:", "yellow")
         print "\t", multisignature_address
 
+
+    def get_unspent(self, address):
+
+        table = []
+
+        # Make a request to the BitGo API to retrieve all unspent Bitcoin associated
+        # with the provided address
+        response = requests.get('https://www.bitgo.com/api/v1/address/' + address + '/tx')
+
+        transactions = response.json()['transactions']
+
+        # Retrieve the necessary information from the transaction payload
+        for transaction in transactions:
+          date = transaction['date']
+          unspents = transaction['outputs']
+          transaction_id = transaction['id']
+          for unspent in unspents:
+              table.append([date, transaction_id, unspent['account'], unspent['value'], unspent['vout']])
+
+        print tabulate(table, headers=["Date", "Transaction ID", "Address", "Value", "Vout"])
+
+
     @staticmethod
     def generate_private_key():
         return sha256(str(random.randrange(2**256)))
+
 
     # Function aliases - modified for readability
     @staticmethod
     def get_public_key(private_key):
         return privtopub(private_key)
 
+
     @staticmethod
     def get_public_address(public_key):
         return pubtoaddr(public_key)
+
 
     @staticmethod
     def create_redeem_script(public_keys):
         return mk_multisig_script(public_keys, 2, 3)
 
+
     @staticmethod
     def redeem_script_to_address(redeem_script):
         return p2sh_scriptaddr(redeem_script)
+
 
 @click.group(help='')
 def cli():
     pass
 
+
 @click.command('generate_address')
 def generate_address():
     MultiSignature().generate_address()
 
+
+@click.command('get_unspent')
+@click.option('--address', help='Bitcoin address', required=True)
+def get_unspent(address):
+    MultiSignature().get_unspent(address)
+
+
 cli.add_command(generate_address)
+cli.add_command(get_unspent)
+
 
 if __name__ == '__main__':
     cli()
