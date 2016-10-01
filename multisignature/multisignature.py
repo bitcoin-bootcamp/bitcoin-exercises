@@ -6,6 +6,7 @@
 import click
 
 from bitcoin import *
+from termcolor import colored
 
 class MultiSignature(object):
 
@@ -15,30 +16,29 @@ class MultiSignature(object):
         private_key_two = self.generate_private_key()
         private_key_three = self.generate_private_key()
 
-        print "Generate private keys:"
-        print "One - ", private_key_one
-        print "Two - ", private_key_two
-        print "Three - ", private_key_three
-        
+        print colored("Generate private keys:", "yellow")
+        print "\t1 - ", private_key_one
+        print "\t2 - ", private_key_two
+        print "\t3 - ", private_key_three        
 
         public_key_one = self.get_public_key(private_key_one)
         public_key_two = self.get_public_key(private_key_two)
         public_key_three = self.get_public_key(private_key_three)
 
-        print "Generated public keys:"
-        print "One - ", self.get_public_address(public_key_one)
-        print "Two - ", self.get_public_address(public_key_two)
-        print "Three - ", self.get_public_address(public_key_three)
+        print colored("Generated public keys:", "yellow")
+        print "\t1 - ", self.get_public_address(public_key_one)
+        print "\t2 - ", self.get_public_address(public_key_two)
+        print "\t3 - ", self.get_public_address(public_key_three)
 
         redeem_script = self.create_redeem_script([public_key_one, public_key_two, public_key_three])
 
-        print "Redeem script:"
-        print redeem_script
+        print colored("Redeem script:", "yellow")
+        print "\t", redeem_script
 
         multisignature_address = self.redeem_script_to_address(redeem_script)
 
-        print "Multisignature address:"
-        print multisignature_address
+        print colored("Multisignature address:", "yellow")
+        print "\t", multisignature_address
 
     @staticmethod
     def generate_private_key():
