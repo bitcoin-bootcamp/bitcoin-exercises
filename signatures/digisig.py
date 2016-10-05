@@ -4,7 +4,7 @@ import ecdsa
 import hashlib
 import random
 
-def write_keys(secret):
+def create_keys(secret):
     """Create the ECDSA key pair"""
     # Enter a random private key from https://bitcore.io/playground/#/address
     pk = secret.decode('hex')
@@ -13,11 +13,11 @@ def write_keys(secret):
     sk = ecdsa.SigningKey.from_string(pk, curve=ecdsa.SECP256k1)
 
     # Write the private key to disk
-    open("priv.pem","w").write(sk.to_pem())
+    open("sk.pem","w").write(sk.to_pem())
 
     # Write the public key to disk
     vk = sk.verifying_key
-    open("pub.pem","w").write(vk.to_pem())
+    open("vk.pem","w").write(vk.to_pem())
 
     return (sk, vk)
 
@@ -26,40 +26,52 @@ def digisig():
     pass
 
 @digisig.command()
-@click.option('--message', '-m', default='Hello world', prompt='Your message', help='The message to sign')
-@click.option('--secret', '-s', prompt='Your private key', help='Private key in hex')
+@click.option('--message', '-m', prompt='Your message', help='The message to sign')
+@click.option('--secret', '-s', prompt='Your private (secret) key', help='Private key (in hex)')
 def sign(message, secret):
-    """Sign a message using a private key"""
-    sk, vk = write_keys(secret)
+    """
+    Sign a message using a private key
+    """
+    # Create the public key
+    sk, vk = create_keys(secret)
+
+    # In Bitcoin much more occurs here
     m = message
+
+    # Create the signature
     sig = sk.sign(m, hashfunc=hashlib.sha256, sigencode=ecdsa.util.sigencode_der)
 
-    # Write the signature to disk
+    # Write the message to disk for later
+    open("msg.txt","w").write(m)
+
+    # Write the signature to disk for later
     open("sig.der","w").write(sig)
 
-    click.echo(click.style('Message: ', fg='yellow') + '%s' % m)
-    click.echo(click.style('Signature: ', fg='yellow') + '%s' % sig.encode('Base64'))
-    click.echo(click.style('Wrote 3 files (priv.pem, pub.pem, sig.der)', fg='magenta'))
+    click.echo(click.style('Message signed!', fg='yellow'))
+    click.echo(click.style('Wrote 4 files (msg.txt, sk.pem, vk.pem, sig.der)', fg='magenta'))
 
-    # Write the message to disk
-    open("message.txt","w").write(m)
-
-    click.echo(click.style('Note: ', fg='white', bold=True) + 'You can use OpenSSL to verify the signature.')
-    click.echo('Simply run: openssl dgst -sha256 -verify pub.pem -signature sig.der message.txt')
+    click.echo(click.style('Note: ', fg='white', bold=True) + 'You can use OpenSSL to verify the signature!')
+    click.echo('Simply run: openssl dgst -sha256 -verify vk.pem -signature sig.der msg.txt')
 
     return
 
 @digisig.command()
-@click.option('--signature', '-sig', prompt='The digital signature', help='The digital signature of a message')
-@click.option('--message', '-m', default='Hello world', prompt='Your message', help='The message to sign')
-@click.option('--publickey', '-p', prompt='The public key associated with the signature', help='The public key associated with the signature')
-def verify(signature, message, publickey):
-    """Verify a message given a signature and public key"""
-
-    # Convert publickey into vk (vk.from_pem())
-    
-    # print vk.verify(sig, m)
-    click.echo(click.style('This is an output: ', fg='yellow') + 'This is normal')
+@click.argument('signature', type=click.Path(exists=True))
+@click.argument('message', type=click.Path(exists=True))
+@click.argument('public_key', type=click.Path(exists=True))
+def verify(signature, message, public_key):
+    """
+    Verify a message given the signature, message, and public key files
+    """
+    sig = open(signature, "r").read()
+    msg = open(message,"r").read()
+    vk = ecdsa.VerifyingKey.from_pem(open(public_key,"r").read())
+    is_valid = vk.verify(sig, msg, hashfunc=hashlib.sha256, sigdecode=ecdsa.util.sigdecode_der)
+    prefix = click.style('Signature: ', fg='white', bold=True)
+    if is_valid:
+        click.echo(prefix + click.style('Valid!', fg='green'))
+    else:
+        click.echo(prefix + click.style('Invalid :(', fg='red'))
 
     return
 
