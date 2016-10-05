@@ -2,6 +2,9 @@
 import click
 import hashlib
 import json
+import urllib
+
+TOSHI_URL = 'https://bitcoin.toshi.io/api/v0/blocks/'
 
 # Hash pairs of items recursively until a single value is obtained
 def merkle(hashList):
@@ -32,12 +35,13 @@ def hash2(a, b):
     return h[::-1].encode('hex')
 
 @click.command()
-@click.argument('f', type=click.Path(exists=True))
-def mroot(f):
+@click.argument('block_height')
+def mroot(block_height):
     """Comments"""
-    filename = open(f, 'r')
-    block = json.loads(filename.read())
 
+    url = TOSHI_URL + '%s' % block_height
+    response = urllib.urlopen(url)
+    block = json.loads(response.read())
     # Print out the number of transactions in the block
     numTxs = len(block["transaction_hashes"])
     click.echo(click.style('Number of transactions: ', fg='yellow') + '%i' % numTxs)
