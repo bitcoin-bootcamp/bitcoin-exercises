@@ -14,8 +14,6 @@ def gen_address(private_key, compression):
     # Get the verifying_key
     xy = sk.verifying_key.to_string().encode('hex')
 
-    # Uncompressed public key (http://gobittest.appspot.com/Address)
-
     if compression:
         # Compressed public key
         if ((int(xy[64::],16)%2) == 1):
@@ -60,6 +58,7 @@ def gen_address(private_key, compression):
     help='Compressed vs. Uncompressed public key')
 def btc_address(secret, c):
     # Validate against: https://bitcore.io/playground/#/address
+    # For uncompressed: http://gobittest.appspot.com/Address
     address = gen_address(secret, c)
     parens = '(Compressed)' if c else '(Uncompressed)'
     click.echo(click.style('Bitcoin Address %s: ' % parens, fg='yellow') + address)
