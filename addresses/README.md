@@ -23,6 +23,8 @@ $ python address.py --secret 'e1e78ca3ebbce24977ddd8161905e7ee6821c0a100a6c1a58a
 Bitcoin Address (Uncompressed): 1F7JmVptgKkvLqdjhj4DTX35Uqh8APrfc
 ```
 
+We recommend taking a look at the actual python code to get a sense of how addresses are being generated.
+
 Prior to Bitcoin Core 0.6 uncompressed public keys were used. **Compressed public keys** are now the recommended default because they significantly reduce the space used to store public keys for every spent output.
 
 For more information about compressed/uncompressed public keys checkout these resources:
@@ -30,3 +32,22 @@ For more information about compressed/uncompressed public keys checkout these re
 * [Public key formats - Bitcoin.org Developer Guide](https://bitcoin.org/en/developer-guide#public-key-formats)
 * [TP's Go Bitcoin Tests - Addresses](http://gobittest.appspot.com/Address)
 * [See the "Bitcoin addresses and keys" section of this post](http://www.righto.com/2014/02/bitcoins-hard-way-using-raw-bitcoin.html)
+
+## Generating a Bitcoin Address using the python REPL
+You can quickly generate an address using pybitcointools as well. First you should clone the pybitcointools repo:
+```
+git clone https://github.com/vbuterin/pybitcointools.git
+```
+
+Jump into the cloned repo, start python, and run through these commands:
+```
+$ cd pybitcointools
+$ python
+>>> from bitcoin import *
+>>> sk = random_key()
+>>> print sk
+e1e78ca3ebbce24977ddd8161905e7ee6821c0a100a6c1a58ac2e0cf79f98635
+>>> privtoaddr(sk)
+‘1F7JmVptgKkvLqdjhj4DTX35Uqh8APrfc’
+```
+If you want to exit the REPL, just type: `exit()`
