@@ -4,6 +4,8 @@ The easiest way to play with digital signatures is to use the pybitcointools lib
 
 
 ## Digital Signatures in python REPL
+**Play-by-play:** [REPL Demo](http://showterm.io/203b168061b0156c4d1dd)
+
 You can get a feel for digital signatures by going through this exercise:
 ```
 $ git clone https://github.com/vbuterin/pybitcointools.git

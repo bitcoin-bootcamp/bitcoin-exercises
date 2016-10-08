@@ -1,6 +1,6 @@
 # Hashcash
 
-**Play-by-play:** [CLI Demo -- Update](http://showterm.io/d00ae10bb8c6a0175ead5)
+**Play-by-play:** [Hashcash Demo](http://showterm.io/6da51cbe00931ceb6dc77)
 
 ## Minting a stamp
 To “mint” a stamp you can run the following command:
