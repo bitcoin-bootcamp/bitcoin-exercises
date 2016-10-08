@@ -21,7 +21,7 @@ True
 False
 ```
 
-You can also take a look at the `digisig.py` tool which uses the ecdsa library. It will generate files so that OpenSSL can be used to verify the signature.
+You can also take a look at the `digisig.py` tool in the `signatures` folder which uses the python ecdsa library. It will generate files so that OpenSSL can be used to verify the signature.
 
 Here's how to use the digisig tool:
 
@@ -32,13 +32,15 @@ Wrote 4 files (msg.txt, sk.pem, vk.pem, sig.der)
 Note: You can use OpenSSL to verify the signature!
 Simply run: openssl dgst -sha256 -verify vk.pem -signature sig.der msg.txt
 ```
+
 To verify:
 ```
 $ python digisig.py verify sig.der msg.txt vk.pem
 Signature: Valid!
 ```
-Or use OpenSSL:
+
+Or verify using OpenSSL by passing in the public key, signature and message respectively:
 ```
 $ openssl dgst -sha256 -verify vk.pem -signature sig.der msg.txt
-
+Verified OK
 ```
