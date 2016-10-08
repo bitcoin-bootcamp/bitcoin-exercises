@@ -1,6 +1,6 @@
 # Bitcoin Addresses
 
-**Play-by-play:** [CLI Demo -- Update](http://showterm.io/d00ae10bb8c6a0175ead5)
+**Play-by-play:** [Address Generation](http://showterm.io/d9f377f18a6163b461728)
 
 Given a private key (encoded in hex), this tool generates a public bitcoin address.
 Similar in functionality to the address page in the [bitcore playground](https://bitcore.io/playground/#/address)
