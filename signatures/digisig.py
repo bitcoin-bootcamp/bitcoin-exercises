@@ -66,7 +66,11 @@ def verify(signature, message, public_key):
     sig = open(signature, "r").read()
     msg = open(message,"r").read()
     vk = ecdsa.VerifyingKey.from_pem(open(public_key,"r").read())
-    is_valid = vk.verify(sig, msg, hashfunc=hashlib.sha256, sigdecode=ecdsa.util.sigdecode_der)
+    try:
+        is_valid = vk.verify(sig, msg, hashfunc=hashlib.sha256, sigdecode=ecdsa.util.sigdecode_der)
+    except:
+        is_valid = False
+    
     prefix = click.style('Signature: ', fg='white', bold=True)
     if is_valid:
         click.echo(prefix + click.style('Valid!', fg='green'))
