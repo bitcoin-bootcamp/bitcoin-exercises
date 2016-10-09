@@ -67,7 +67,7 @@ class Wallet(object):
         print "\t", multisignature_address
 
 
-    def get_unspents(self, address, testnet):
+    def get_unspents(self, address, testnet, json):
 
         table = []
 
@@ -77,8 +77,14 @@ class Wallet(object):
             response = requests.get('https://test.bitgo.com/api/v1/address/' + address + '/tx')
         else:
             response = requests.get('https://www.bitgo.com/api/v1/address/' + address + '/tx')
+            
+        try:
+            transactions = response.json()['transactions']
+        except:
+            print 'No unspents found for address: ', address
+            return
 
-        transactions = response.json()['transactions']
+        utxos = []
 
         # Retrieve the necessary information from the transaction payload
         for transaction in transactions:
@@ -86,22 +92,52 @@ class Wallet(object):
           unspents = transaction['outputs']
           transaction_id = transaction['id']
           for unspent in unspents:
-              table.append([date, transaction_id, unspent['account'], unspent['value'], unspent['vout']])
+              if unspent['account'] == address:
+                utxos.append({'output': transaction_id + ':' + str(unspent['vout']), 'value': unspent['value']})
+                table.append([date, transaction_id, unspent['account'], unspent['value'], unspent['vout']])
+
+        if json:
+            print colored("Unspent Transactions", "yellow")
+            print "\t Address: ", address
+            print "\t", utxos
+            return utxos
 
         print tabulate(table, headers=["Date", "Transaction ID", "Address", "Value", "Vout"])
 
 
-    def create_raw_transaction(self, txid, vout, address, amount, change_address, fee):
-        raw_transaction =  self._create_raw_transaction(txid, vout, address, amount, change_address, fee)
+    def create_raw_transaction(self, address, amount, testnet):
+        outputs = self.get_unspents(address, testnet, json=True)
+        raw_transaction =  self._create_raw_transaction(outputs, address, amount)
+        print colored("Raw unsigned transaction:", "yellow")
+        print "\t", raw_transaction
 
-        print colored("Raw transaction:", "yellow")
-        print raw_transaction
+
+    def create_and_sign_raw_transaction(self, address, amount, private_key, testnet):
+        outputs = self.get_unspents(address, testnet, json=True)
+        raw_transaction =  self._create_raw_transaction(outputs, address, amount)
+
+        print colored("Raw unsigned transaction:", "yellow")
+        print "\t", raw_transaction 
+        utxos = []
+        for utxo in outputs:
+            utxos.append({utxo['output']: private_key})
+
+        raw_signed_transaction = sign(raw_transaction, 0, private_key)
+        print colored("Raw signed transaction:", "yellow")
+        print raw_signed_transaction
 
 
     def sign_transaction(self, private_key, transaction):
         index = 0
         signed_transaction = self._sign_transaction(transaction, index, private_key)
         print colored("Signed transaction:", "yellow")
+        print signed_transaction
+
+
+    def sign_multisignature_transaction(self, private_key, script, transaction):
+        index = 0
+        signed_transaction = self._sign_multisignature_transaction(transaction, index, script, private_key)
+        print colored("Signed multisignature unspent:", "yellow")
         print signed_transaction
 
 
@@ -144,15 +180,20 @@ class Wallet(object):
     # Transaction creation and signing methods
 
     @staticmethod
-    def _create_raw_transaction(transaction_id, vout, address, amount, change_address, fee):
-        inputs = [transaction_id + ':' + vout]
-        outputs = [address + ':' + amount]
-        return mktx(inputs, outputs, change_address, fee)
+    def _create_raw_transaction(outputs, address, amount):
+        ins = outputs
+        outs = [{'value': int(amount), 'address': address}]
+        return mksend(ins, outs, address, 1000000)
 
 
     @staticmethod
     def _sign_transaction(transaction, index, private_key):
-        return sign(transaction, index, private_key)
+        return sign(str(transaction), int(index), private_key)
+
+    @staticmethod
+    def _sign_multisignature_transaction(transaction, index, script, private_key):
+        return multisign(transaction, index, script, private_key)
+
 
 
 @click.group(help='')
@@ -171,20 +212,29 @@ def generate_multisig_address(testnet):
     Wallet().generate_multisig_address(testnet)
 
 
-@click.command('get_unspent')
+@click.command('get_unspents')
 @click.option('--address', help='Bitcoin address', required=True)
 @click.option('--testnet', help='Testnet flag', is_flag=True)
-def get_unspents(address. testnet):
-    Wallet().get_unspents(address, testnet)
+@click.option('--json', help='Return JSON', is_flag=True)
+def get_unspents(address, testnet, json):
+    Wallet().get_unspents(address, testnet, json)
 
 
 @click.command('create_raw_transaction')
-@click.option('--txid', help='Transaction Id', required=True)
-@click.option('--vout', help='The vout or index of the unspent', required=True)
 @click.option('--address', help='The recipients address', required=True)
 @click.option('--amount', help='The amount to send', required=True)
-def create_raw_transaction(txid, vout, address, amount):
-    Wallet().create_raw_transaction(txid, vout, address, amount)
+@click.option('--testnet', help='Testnet flag', is_flag=True)
+def create_raw_transaction(address, amount, testnet):
+    Wallet().create_raw_transaction(address, amount, testnet)
+
+
+@click.command('create_and_sign_raw_transaction')
+@click.option('--address', help='The recipients address', required=True)
+@click.option('--private_key', help='The private key associated with the unspent', required=True)
+@click.option('--amount', help='The amount to send', required=True)
+@click.option('--testnet', help='Testnet flag', is_flag=True)
+def create_and_sign_raw_transaction(address, amount, private_key, testnet):
+    Wallet().create_and_sign_raw_transaction(address, amount, private_key, testnet)
 
 
 @click.command('sign_transaction')
@@ -194,10 +244,19 @@ def sign_transaction(private_key, transaction):
     Wallet().sign_transaction(private_key, transaction)
 
 
+@click.command('sign_multisignature_transaction')
+@click.option('--private_key', help='Private key', required=True)
+@click.option('--transaction', help='The raw transaction', required=True)
+@click.option('--script', help='The redeem script', required=True)
+def sign_multisignature_transaction(private_key, transaction, script):
+    Wallet().sign_multisignature_transaction(private_key, transaction, script)
+
+
 cli.add_command(generate_multisig_address)
 cli.add_command(generate_address)
 cli.add_command(get_unspents)
 cli.add_command(create_raw_transaction)
+cli.add_command(create_and_sign_raw_transaction)
 cli.add_command(sign_transaction)
 
 
