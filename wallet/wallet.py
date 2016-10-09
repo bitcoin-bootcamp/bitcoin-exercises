@@ -1,5 +1,5 @@
 #!/usr/bin/python
-""" A multisignature library designed for demonstration of multisignature concepts
+""" A library designed for demonstration of simple wallet functionality
 
 """
 
@@ -9,9 +9,26 @@ from bitcoin import *
 from termcolor import colored
 from tabulate import tabulate
 
-class MultiSignature(object):
+class Wallet(object):
 
-    def generate_address(self):
+
+    def generate_address(self, testnet):
+
+        private_key = self.generate_private_key()
+
+        print colored("Generate private key:", "yellow")
+        print "\t", private_key
+
+        public_key = self.get_public_key(private_key)
+
+        print colored("Generated public key:", "yellow")
+        if testnet:
+            print "\t", self.get_public_address_testnet(public_key)
+        else:
+            print "\t", self.get_public_address(public_key)
+
+
+    def generate_multisig_address(self, testnet):
 
         private_key_one = self.generate_private_key()
         private_key_two = self.generate_private_key()
@@ -27,16 +44,24 @@ class MultiSignature(object):
         public_key_three = self.get_public_key(private_key_three)
 
         print colored("Generated public keys:", "yellow")
-        print "\t1 - ", self.get_public_address(public_key_one)
-        print "\t2 - ", self.get_public_address(public_key_two)
-        print "\t3 - ", self.get_public_address(public_key_three)
+        if testnet:
+            print "\t1 - ", self.get_public_address_testnet(public_key_one)
+            print "\t2 - ", self.get_public_address_testnet(public_key_two)
+            print "\t3 - ", self.get_public_address_testnet(public_key_three)
+        else:
+            print "\t1 - ", self.get_public_address(public_key_one)
+            print "\t2 - ", self.get_public_address(public_key_two)
+            print "\t3 - ", self.get_public_address(public_key_three)
 
         redeem_script = self.create_redeem_script([public_key_one, public_key_two, public_key_three])
 
         print colored("Redeem script:", "yellow")
         print "\t", redeem_script
 
-        multisignature_address = self.redeem_script_to_address(redeem_script)
+        if testnet:
+            multisignature_address = self.redeem_script_to_address_testnet(redeem_script)
+        else:
+            multisignature_address = self.redeem_script_to_address(redeem_script)
 
         print colored("Multisignature address:", "yellow")
         print "\t", multisignature_address
@@ -48,7 +73,7 @@ class MultiSignature(object):
 
         # Make a request to the BitGo API to retrieve all unspent Bitcoin associated
         # with the provided address
-        response = requests.get('https://www.bitgo.com/api/v1/address/' + address + '/tx')
+        response = requests.get('https://test.bitgo.com/api/v1/address/' + address + '/tx')
 
         transactions = response.json()['transactions']
 
@@ -95,14 +120,23 @@ class MultiSignature(object):
 
 
     @staticmethod
+    def get_public_address_testnet(public_key, magicbytes=111):
+        return pubtoaddr(public_key, magicbytes)
+
+
+    @staticmethod
     def create_redeem_script(public_keys):
         return mk_multisig_script(public_keys, 2, 3)
 
 
     @staticmethod
+    def redeem_script_to_address_testnet(redeem_script):
+        return p2sh_scriptaddr(redeem_script, 0xc4)
+
+
+    @staticmethod
     def redeem_script_to_address(redeem_script):
         return p2sh_scriptaddr(redeem_script)
-
 
     # Transaction creation and signing methods
 
@@ -122,16 +156,22 @@ class MultiSignature(object):
 def cli():
     pass
 
-
 @click.command('generate_address')
-def generate_address():
-    MultiSignature().generate_address()
+@click.option('--testnet', help='Testnet flag', is_flag=True)
+def generate_address(testnet):
+    Wallet().generate_address(testnet)
+
+
+@click.command('generate_multisig_address')
+@click.option('--testnet', help='Testnet flag', is_flag=True)
+def generate_multisig_address(testnet):
+    Wallet().generate_multisig_address(testnet)
 
 
 @click.command('get_unspent')
 @click.option('--address', help='Bitcoin address', required=True)
 def get_unspents(address):
-    MultiSignature().get_unspents(address)
+    Wallet().get_unspents(address)
 
 
 @click.command('create_raw_transaction')
@@ -140,16 +180,17 @@ def get_unspents(address):
 @click.option('--address', help='The recipients address', required=True)
 @click.option('--amount', help='The amount to send', required=True)
 def create_raw_transaction(txid, vout, address, amount):
-    MultiSignature().create_raw_transaction(txid, vout, address, amount)
+    Wallet().create_raw_transaction(txid, vout, address, amount)
 
 
 @click.command('sign_transaction')
 @click.option('--private_key', help='Private key', required=True)
 @click.option('--transaction', help='Transaction', required=True)
 def sign_transaction(private_key, transaction):
-    MultiSignature().sign_transaction(private_key, transaction)
+    Wallet().sign_transaction(private_key, transaction)
 
 
+cli.add_command(generate_multisig_address)
 cli.add_command(generate_address)
 cli.add_command(get_unspents)
 cli.add_command(create_raw_transaction)
