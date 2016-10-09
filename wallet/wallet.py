@@ -91,8 +91,8 @@ class Wallet(object):
         print tabulate(table, headers=["Date", "Transaction ID", "Address", "Value", "Vout"])
 
 
-    def create_raw_transaction(self, txid, vout, address, amount, change_address, fee):
-        raw_transaction =  self._create_raw_transaction(txid, vout, address, amount, change_address, fee)
+    def create_raw_transaction(self, txid, vout, address, amount):
+        raw_transaction =  self._create_raw_transaction(txid, vout, address, amount)
 
         print colored("Raw transaction:", "yellow")
         print raw_transaction
@@ -144,10 +144,10 @@ class Wallet(object):
     # Transaction creation and signing methods
 
     @staticmethod
-    def _create_raw_transaction(transaction_id, vout, address, amount, change_address, fee):
+    def _create_raw_transaction(transaction_id, vout, address, amount):
         inputs = [transaction_id + ':' + vout]
-        outputs = [address + ':' + amount]
-        return mktx(inputs, outputs, change_address, fee)
+        outputs = [{"address": address, "value": int(amount)}]
+        return mktx(inputs, outputs)
 
 
     @staticmethod
