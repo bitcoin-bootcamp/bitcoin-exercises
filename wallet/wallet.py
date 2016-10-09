@@ -67,13 +67,16 @@ class Wallet(object):
         print "\t", multisignature_address
 
 
-    def get_unspents(self, address):
+    def get_unspents(self, address, testnet):
 
         table = []
 
         # Make a request to the BitGo API to retrieve all unspent Bitcoin associated
         # with the provided address
-        response = requests.get('https://test.bitgo.com/api/v1/address/' + address + '/tx')
+        if testnet:
+            response = requests.get('https://test.bitgo.com/api/v1/address/' + address + '/tx')
+        else:
+            response = requests.get('https://www.bitgo.com/api/v1/address/' + address + '/tx')
 
         transactions = response.json()['transactions']
 
@@ -170,8 +173,9 @@ def generate_multisig_address(testnet):
 
 @click.command('get_unspent')
 @click.option('--address', help='Bitcoin address', required=True)
-def get_unspents(address):
-    Wallet().get_unspents(address)
+@click.option('--testnet', help='Testnet flag', is_flag=True)
+def get_unspents(address. testnet):
+    Wallet().get_unspents(address, testnet)
 
 
 @click.command('create_raw_transaction')
