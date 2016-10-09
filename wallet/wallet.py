@@ -174,7 +174,7 @@ def generate_multisig_address(testnet):
 @click.command('get_unspent')
 @click.option('--address', help='Bitcoin address', required=True)
 @click.option('--testnet', help='Testnet flag', is_flag=True)
-def get_unspents(address. testnet):
+def get_unspents(address, testnet):
     Wallet().get_unspents(address, testnet)
 
 
